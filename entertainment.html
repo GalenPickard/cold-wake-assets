@@ -114,7 +114,8 @@
   </div>
   <div class="player">
     <iframe
-      src="https://www.youtube.com/embed/Z8ZhQPaw4rE?si=cold-wake-1&modestbranding=1&rel=0&autoplay=1&mute=1&playsinline=1&loop=1&playlist=Z8ZhQPaw4rE"
+      id="ytframe"
+      src="https://www.youtube.com/embed/Z8ZhQPaw4rE?si=cold-wake-1&modestbranding=1&rel=0&mute=1&playsinline=1&loop=1&playlist=Z8ZhQPaw4rE&enablejsapi=1"
       allow="autoplay; accelerometer; encrypted-media; picture-in-picture"
       allowfullscreen></iframe>
     <div class="scanlines"></div>
@@ -125,6 +126,20 @@
   </div>
 </div>
 <script>
+  // The CTF dock posts {type:'argos-play'} when the wake beat opens. Forward
+  // a YouTube IFrame API playVideo command to the embed.
+  window.addEventListener('message', function(e) {
+    if (e && e.data && e.data.type === 'argos-play') {
+      var yt = document.getElementById('ytframe');
+      if (yt && yt.contentWindow) {
+        yt.contentWindow.postMessage(
+          JSON.stringify({event:'command', func:'playVideo', args:[]}),
+          'https://www.youtube.com'
+        );
+      }
+    }
+  });
+
   // Little ambient tick in the corner so the chrome reads "live device,"
   // not "static image." Counts up since page load in HH:MM:SS — reads as
   // session uptime / signal-lock timer.
