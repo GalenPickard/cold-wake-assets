@@ -123,7 +123,7 @@
   <div class="player">
     <iframe
       id="ytframe"
-      src="https://www.youtube.com/embed/Z8ZhQPaw4rE?si=cold-wake-1&modestbranding=1&rel=0&mute=1&playsinline=1&loop=1&playlist=Z8ZhQPaw4rE&enablejsapi=1&controls=0&disablekb=1&iv_load_policy=3"
+      src="https://www.youtube.com/embed/Z8ZhQPaw4rE?si=cold-wake-1&modestbranding=1&rel=0&autoplay=1&mute=1&playsinline=1&loop=1&playlist=Z8ZhQPaw4rE&controls=0&disablekb=1&iv_load_policy=3"
       allow="autoplay; accelerometer; encrypted-media; picture-in-picture"
       allowfullscreen></iframe>
     <div class="scanlines"></div>
@@ -135,51 +135,11 @@
   </div>
 </div>
 <script>
-  // The CTF dock posts {type:'argos-play'} when the wake beat opens. Forward
-  // a YouTube IFrame API playVideo command to the embed.
-  //
-  // The YT player won't accept playVideo until its internal frame has
-  // finished loading and registered its postMessage listener, which can
-  // happen ~hundreds of ms after the iframe element appears in our DOM.
-  // We can't reliably observe the moment it's ready from outside, so on
-  // 'argos-play' we retry playVideo every 500ms for 15s. YT also emits
-  // onStateChange postMessages back to us — once we see 'playing' (state
-  // 1) we stop retrying.
-  var playRequestedAt = 0;
-  var isPlaying = false;
-  function sendPlay() {
-    var yt = document.getElementById('ytframe');
-    if (yt && yt.contentWindow) {
-      yt.contentWindow.postMessage(
-        JSON.stringify({event:'command', func:'playVideo', args:[]}),
-        'https://www.youtube.com'
-      );
-    }
-  }
-  window.addEventListener('message', function(e) {
-    if (!e || !e.data) return;
-    // Dock → us
-    if (e.data.type === 'argos-play') {
-      playRequestedAt = Date.now();
-      sendPlay();
-      return;
-    }
-    // YT → us (state change). YT messages are JSON strings.
-    if (typeof e.data === 'string') {
-      try {
-        var msg = JSON.parse(e.data);
-        if (msg && msg.event === 'onStateChange' && msg.info === 1) {
-          isPlaying = true;
-        }
-      } catch (_) { /* not a YT message */ }
-    }
-  });
-  setInterval(function() {
-    if (isPlaying) return;
-    if (playRequestedAt === 0) return;
-    if (Date.now() - playRequestedAt > 15000) return;
-    sendPlay();
-  }, 500);
+  // The YouTube embed has `autoplay=1&mute=1` in its URL — playback is
+  // driven by that directly. For it to work inside Datadog's iframe widget
+  // (which renders the outer <iframe> with no `allow="autoplay"`), the
+  // dock JS patches `allow` and forces a reload before this document runs.
+  // See useEntertainmentAutoplay.ts.
 
   // Little ambient tick in the corner so the chrome reads "live device,"
   // not "static image." Counts up since page load in HH:MM:SS — reads as
