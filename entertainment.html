@@ -64,6 +64,13 @@
     display: block;
     pointer-events: none;
   }
+  .input-shield {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    background: transparent;
+    cursor: default;
+  }
   .scanlines {
     position: absolute;
     inset: 0;
@@ -120,6 +127,7 @@
       allow="autoplay; accelerometer; encrypted-media; picture-in-picture"
       allowfullscreen></iframe>
     <div class="scanlines"></div>
+    <div class="input-shield" aria-hidden="true"></div>
   </div>
   <div class="bottombar">
     <span class="nowplaying">Now playing — <em>Solaris</em> (1972, USSR)</span>
