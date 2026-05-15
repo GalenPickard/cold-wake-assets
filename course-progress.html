@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Course Progress — ISV Argos</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #0d0e15;
+    color: #cfd1d6;
+    font-family: 'IBM Plex Mono', 'Roboto Mono', 'SF Mono', Menlo, monospace;
+    overflow: hidden;
+  }
+  .stack {
+    position: relative;
+    height: 100%;
+    padding: 10px 12px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 2;
+  }
+  .stars {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow: hidden;
+  }
+  .star {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    background: #fff;
+    border-radius: 50%;
+    opacity: 0.55;
+    will-change: transform;
+  }
+  .star.--dim { opacity: 0.25; }
+  .star.--bright { opacity: 0.9; width: 2px; height: 2px; }
+
+  .title {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+  .progress {
+    position: relative;
+    height: 8px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 4px;
+    margin: 4px 0 6px;
+    overflow: visible;
+  }
+  .progress-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, #4caf50, #00d4aa);
+    border-radius: 4px;
+    width: 67.8%;
+  }
+  .ship {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    left: 67.8%;
+    font-size: 14px;
+    line-height: 1;
+    filter: drop-shadow(0 0 4px rgba(0, 212, 170, 0.6));
+  }
+  .endpoint {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    border-radius: 50%;
+  }
+  .endpoint.--sol { left: 0; background: #ffd166; box-shadow: 0 0 6px #ffd166aa; }
+  .endpoint.--dest { left: 100%; background: #4d8af0; box-shadow: 0 0 6px #4d8af0aa; }
+  .endpoint-label {
+    position: absolute;
+    top: 14px;
+    font-size: 9px;
+    opacity: 0.6;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .endpoint-label.--sol { left: 0%; }
+  .endpoint-label.--dest { left: 100%; }
+  .meta {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 10px;
+    row-gap: 3px;
+    font-size: 11px;
+    line-height: 1.35;
+    margin-top: 16px;
+  }
+  .meta .k { opacity: 0.55; }
+  .meta .v { text-align: right; color: #e8eaee; }
+  .meta .v.--green { color: #4caf50; }
+  .pct {
+    font-size: 18px;
+    font-weight: 600;
+    color: #00d4aa;
+    text-align: right;
+    margin-top: -2px;
+  }
+  .footnote {
+    font-size: 9px;
+    font-style: italic;
+    opacity: 0.45;
+    margin-top: 6px;
+  }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+<div class="stack">
+  <div>
+    <div class="title">Course Progress</div>
+    <div class="pct" id="pct">67.8000%</div>
+    <div class="progress">
+      <div class="progress-fill" id="fill"></div>
+      <div class="endpoint --sol"></div>
+      <div class="endpoint --dest"></div>
+      <div class="ship" id="ship">🚀</div>
+      <div class="endpoint-label --sol">Sol</div>
+      <div class="endpoint-label --dest">47 Tuc IV</div>
+    </div>
+  </div>
+  <div class="meta">
+    <span class="k">Distance</span>      <span class="v" id="dist">32.4000 / 47.8 ly</span>
+    <span class="k">Velocity</span>      <span class="v --green">ε 0.092 c</span>
+    <span class="k">ETA (Earth)</span>   <span class="v" id="eta">Apr 2071</span>
+    <span class="k">Ship-frame</span>    <span class="v" id="shipframe">8m 22s</span>
+  </div>
+  <div class="footnote">last NAV lock — 03:13:58 UTC · drift +0.000003 c</div>
+</div>
+<script>
+  // ─── starfield ─────────────────────────────────────────────────────
+  (function() {
+    const layer = document.getElementById('stars');
+    const N = 60;
+    const stars = [];
+    for (let i = 0; i < N; i++) {
+      const el = document.createElement('div');
+      const kind = Math.random();
+      el.className = kind > 0.92 ? 'star --bright' : (kind < 0.4 ? 'star --dim' : 'star');
+      const x = Math.random() * 100;
+      const y = Math.random() * 100;
+      el.style.left = x + '%';
+      el.style.top = y + '%';
+      layer.appendChild(el);
+      // Parallax: brighter stars drift slower (nearer? - inversion is fine, looks right)
+      const speed = 0.005 + Math.random() * 0.02;
+      stars.push({ el, x, y, speed });
+    }
+    function tick() {
+      for (const s of stars) {
+        s.x -= s.speed;
+        if (s.x < -2) s.x = 102;
+        s.el.style.left = s.x + '%';
+      }
+      requestAnimationFrame(tick);
+    }
+    tick();
+  })();
+
+  // ─── ticking counters ───────────────────────────────────────────────
+  // Real-time elapsed since page load, scaled into a slowly-incrementing
+  // distance display. Numbers tick forward in fractional ly per minute so
+  // the dashboard feels alive without ever changing the "67.8%" headline.
+  const ORIGIN_LY = 32.4;
+  const TOTAL_LY = 47.8;
+  const SHIPFRAME_START_SEC = 8 * 60 + 22;
+  const LOAD_TIME = Date.now();
+  const distEl = document.getElementById('dist');
+  const pctEl  = document.getElementById('pct');
+  const fillEl = document.getElementById('fill');
+  const shipEl = document.getElementById('ship');
+  const shipFrameEl = document.getElementById('shipframe');
+
+  // ε 0.092 c · ~ 0.092 ly per ly-year, scaled down so the counter shows
+  // 4-decimal motion within seconds. Pure cosmetic.
+  const LY_PER_SEC = 0.092 / (365.25 * 24 * 3600) * 60000;
+
+  function tick() {
+    const elapsed = (Date.now() - LOAD_TIME) / 1000;
+    const dist = ORIGIN_LY + LY_PER_SEC * elapsed;
+    const pct = (dist / TOTAL_LY) * 100;
+    distEl.textContent = dist.toFixed(4) + ' / ' + TOTAL_LY + ' ly';
+    pctEl.textContent  = pct.toFixed(4) + '%';
+    fillEl.style.width = pct.toFixed(4) + '%';
+    shipEl.style.left  = pct.toFixed(4) + '%';
+
+    const shipSec = SHIPFRAME_START_SEC + Math.floor(elapsed);
+    const m = Math.floor(shipSec / 60);
+    const s = shipSec % 60;
+    shipFrameEl.textContent = m + 'm ' + String(s).padStart(2,'0') + 's';
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
