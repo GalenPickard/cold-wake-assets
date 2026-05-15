@@ -63,6 +63,19 @@
     border: 0;
     display: block;
   }
+  /* Mask just the top strip where YT renders its hover-triggered title bar
+     (channel name + share/CC/settings). Opaque div on top covers the bar
+     visually without occluding the rest of the iframe — full-iframe
+     overlays broke autoplay (Chrome detected the iframe as occluded and
+     refused to muted-autoplay). */
+  .topbar-mask {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 38px;
+    background: #000;
+    z-index: 3;
+    pointer-events: none;
+  }
   .scanlines {
     position: absolute;
     inset: 0;
@@ -119,6 +132,7 @@
       allow="autoplay; accelerometer; encrypted-media; picture-in-picture"
       allowfullscreen></iframe>
     <div class="scanlines"></div>
+    <div class="topbar-mask" aria-hidden="true"></div>
   </div>
   <div class="bottombar">
     <span class="nowplaying">Now playing — <em>Solaris</em> (1972, USSR)</span>
