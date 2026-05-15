@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Argos IFE — Ch. 03</title>
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #0b0e13;
+    color: #e4cf85;
+    font-family: 'IBM Plex Mono', 'Roboto Mono', 'SF Mono', Menlo, monospace;
+    overflow: hidden;
+  }
+  .frame {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+    border: 1px solid #1f2937;
+  }
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: linear-gradient(180deg, #14171f, #0b0e13);
+    border-bottom: 1px solid #1f2937;
+    flex-shrink: 0;
+  }
+  .brand {
+    color: #e4cf85;
+    font-weight: 700;
+  }
+  .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: #4caf50;
+    box-shadow: 0 0 4px #4caf50aa;
+    animation: blink 1.6s infinite;
+  }
+  @keyframes blink {
+    0%, 60% { opacity: 1; }
+    65%, 100% { opacity: 0.35; }
+  }
+  .channel {
+    margin-left: auto;
+    opacity: 0.6;
+  }
+  .player {
+    flex: 1 1 auto;
+    position: relative;
+    background: #000;
+    overflow: hidden;
+  }
+  .player iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .scanlines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      0deg,
+      rgba(255,255,255,0.025) 0px,
+      rgba(255,255,255,0.025) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    z-index: 2;
+    mix-blend-mode: overlay;
+  }
+  .bottombar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px;
+    font-size: 9px;
+    background: #0b0e13;
+    border-top: 1px solid #1f2937;
+    flex-shrink: 0;
+  }
+  .nowplaying {
+    color: #cfd1d6;
+    text-transform: none;
+    opacity: 0.85;
+  }
+  .nowplaying em {
+    color: #e4cf85;
+    font-style: normal;
+    font-weight: 600;
+  }
+  .meta {
+    margin-left: auto;
+    opacity: 0.5;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="topbar">
+    <span class="dot"></span>
+    <span class="brand">ARGOS · IFE</span>
+    <span class="channel">Ch.03 — Mosfilm Archive</span>
+  </div>
+  <div class="player">
+    <iframe
+      src="https://www.youtube.com/embed/Z8ZhQPaw4rE?si=cold-wake-1&modestbranding=1&rel=0"
+      allow="accelerometer; encrypted-media; picture-in-picture"
+      allowfullscreen></iframe>
+    <div class="scanlines"></div>
+  </div>
+  <div class="bottombar">
+    <span class="nowplaying">Now playing — <em>Solaris</em> (1972, USSR)</span>
+    <span class="meta" id="clock">SUB · EN</span>
+  </div>
+</div>
+<script>
+  // Little ambient tick in the corner so the chrome reads "live device,"
+  // not "static image." Counts up since page load in HH:MM:SS — reads as
+  // session uptime / signal-lock timer.
+  const el = document.getElementById('clock');
+  const t0 = Date.now();
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function tick() {
+    const s = Math.floor((Date.now() - t0) / 1000);
+    el.textContent = 'SIGNAL ' + pad(Math.floor(s/3600)) + ':' + pad(Math.floor(s/60)%60) + ':' + pad(s%60);
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+</body>
+</html>
